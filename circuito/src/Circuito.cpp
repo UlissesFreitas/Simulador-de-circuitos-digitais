@@ -3,6 +3,7 @@
 
 bool validType(std::string& Tipo)
 {
+/// ****** PORF ******
   if (Tipo.size()!=2) return false;
   Tipo.at(0) = toupper(Tipo.at(0));
   Tipo.at(1) = toupper(Tipo.at(1));
@@ -27,8 +28,9 @@ ptr_Port allocPort(std::string& Tipo)
   // Nunca deve chegar aqui...
   return nullptr;
 }
-///-------------------------------
-    /// Inicializacao e Finalizacao
+  /// ***********************
+  /// Inicializacao e finalizacao
+  /// ***********************
 Circuito::Circuito(): Nin(0), id_out(), out_circ(), ports()
 {
 
@@ -56,6 +58,7 @@ Circuito::~Circuito()
     clear();
 }
 void Circuito::clear(){
+
     Nin = 0;
     id_out.clear() ;
     out_circ.clear();
@@ -66,6 +69,7 @@ void Circuito::clear(){
     ports.clear();
 }
 void Circuito::operator=(const Circuito& C){
+
     clear();
     /// Nin
     Nin = C.getNumInputs();
@@ -85,7 +89,7 @@ void Circuito::operator=(const Circuito& C){
 }
 void Circuito::resize(unsigned NI, unsigned NO, unsigned NP){
     /// checa parametros
-    if(true ){
+    if((NI>0) && (NO >0) && (NP >0)){
         clear();
         Nin = NI;
         for(unsigned i=0; i<NO; i++){
@@ -97,7 +101,10 @@ void Circuito::resize(unsigned NI, unsigned NO, unsigned NP){
         }
     }
 }
-///---------------------------------------------------
+
+  /// ***********************
+  /// Funcoes de testagem
+  /// ***********************
 
 bool Circuito::validIdInput(int IdInput) const
 {
@@ -118,6 +125,7 @@ bool Circuito::validIdOrig(int IdOrig) const
 bool Circuito::definedPort(int IdPort) const
 {
   if (!validIdPort(IdPort)) return false;
+
   if (ports.at(IdPort-1)==nullptr) return false;
   return true;
 }
@@ -128,6 +136,8 @@ bool Circuito::validPort(int IdPort) const
   {
     if (!validIdOrig(getId_inPort(IdPort,j))) return false;
   }
+
+
   return true;
 }
 
@@ -147,7 +157,9 @@ bool Circuito::valid() const
   return true;
 }
 
-///--------------------------------------------------
+  /// ***********************
+  /// Funcoes de consulta
+  /// ***********************
 
 unsigned Circuito::getNumInputs() const{
     return Nin;
@@ -174,12 +186,14 @@ bool3S Circuito::getOutput(int IdOutput) const{
 }
 
 std::string Circuito::getNamePort(int IdPort) const{
+
     if(definedPort(IdPort)){
         return ports[IdPort-1]->getName();
     }
     return "??";
 }
 unsigned Circuito::getNumInputsPort(int IdPort) const{
+
     if(definedPort(IdPort)){
        return ports[IdPort-1]->getNumInputs();
     }
@@ -194,8 +208,9 @@ int Circuito::getId_inPort(int IdPort, unsigned I) const{
     return 0;
 }
 
-///Funcoes de modificacao
-///--------------------------------------------------------------
+  /// ***********************
+  /// Funcoes de modificacao
+  /// ***********************
 void Circuito::setIdOutput(int IdOut, int IdOrig){
     if(validIdOutput(IdOut) && validIdOrig(IdOrig)){
          id_out[IdOut-1] = IdOrig;
@@ -219,7 +234,9 @@ void Circuito::setId_inPort(int IdPort, unsigned I, int IdOrig) const{
         }
     }
 }
-///----------------------------------------
+  /// ***********************
+  /// E/S de dados
+  /// ***********************
 
 void Circuito::digitar(){
 
@@ -291,16 +308,15 @@ void Circuito::digitar(){
 
 }// FIM DIGITAR
 
-///--------------------------------------------
- std::ostream& Circuito::imprimir(std::ostream& O) const{
-    O << "CIRCUITO: " << getNumInputs() << ' ' << getNumOutputs() << ' ' << getNumPorts() << std::endl;
-    O << "PORTAS:"<<std::endl;
+std::ostream& Circuito::imprimir(std::ostream& O) const{
+    O << "CIRCUITO " << getNumInputs() << ' ' << getNumOutputs() << ' ' << getNumPorts() << std::endl;
+    O << "PORTAS"<<std::endl;
     for(unsigned i=1; i<=getNumPorts(); i++){
         O << i<<')';
-        (*ports[i-1]).imprimir(O);
+        (*ports[i-1]).imprimir(O) << std::endl;
     }
 
-    O << "SAIDAS:"<<std::endl;
+    O << "SAIDAS"<<std::endl;
 
     for(unsigned i=1; i<=getNumOutputs(); i++){
         O << i << ") " << getIdOutput(i) << std::endl;
@@ -310,121 +326,108 @@ void Circuito::digitar(){
 }
 
 bool Circuito::ler(const std::string& arq){
-
-        std::ifstream arq_circ(arq.c_str());
-
+    std::ifstream arq_circ(arq.c_str());
     try{
         if(!arq_circ.is_open()) throw 1;
 
         std::string cabecalho, portas, saidas;
         arq_circ >> cabecalho;
+
         if (!arq_circ.good() || cabecalho!="CIRCUITO") throw 2;
 
         unsigned  id_prov, NI, NO, NP;
-        /// int NI, NO, NP;
-        int id;
+
         arq_circ>>NI>>NO>>NP;
-        std::cout << NI << NO << NP << std::endl;
 
         /// if( (NI<=0) || (NO <=0) || (NP <=0) ) throw 3
         /// if((NI==0) || (NO==0) || ((NP==0) && (NI>NO))) throw 3;
         if( (NI<=0) || (NO <=0) || (NP <=0) ) throw 3;
+        clear();
         resize(NI,NO,NP);
 
         arq_circ >> portas; // Recebe "PORTAS"
         if(portas != "PORTAS") throw 4;
 
-    /// Em seguida, para cada porta leh e confere a id e o tipo (validType)
-    for(unsigned i = 1; i<=NP; i++){
+/// Em seguida, para cada porta leh e confere a id e o tipo (validType)
+        //for(unsigned i = 1; i<=NP; i++)
+        for(unsigned i = 0; i<NP; i++){
 
-        arq_circ >> id_prov;
-        if(!arq_circ.good()||id_prov!=i) throw 5;
+            arq_circ >> id_prov;
+            //  id_prov!=i
+            if( !arq_circ.good() || id_prov!=i+1) throw 5;
 
-        char p;
-        arq_circ >> p;
-        if(p != ')') throw 6;
+            char p;
+            arq_circ >> p;
+            if(p != ')') throw 6;
 
-        std::string tipo;
-        arq_circ >> tipo;
-        if(!validType(tipo)) throw 7;
+            std::string tipo;
+            arq_circ >> tipo;
+            if(!validType(tipo)) throw 7;
 
-        Port* porta = allocPort(tipo);
-        //porta->imprimir();
-        ports[i] = porta->clone() ;
+            /// at vai de 0 a 6
+            /// i vai de 1 a 7
+            //ports.at(i-1)
+            ports.at(i) = allocPort(tipo);
 
-        //if( !( ports[i]->ler(arq_circ) && validPort(i) ))  throw 8;
-//std::cout << "entrei aqui" << std::endl;
+
+            if(! ports[i]->ler(arq_circ) ) throw 8;
+            if(  !validPort(i+1) )  throw 9;
+std::cout << "passei: "<<  std::endl;
 
     } // FIM FOR NP
+    arq_circ >> saidas;
+    if(saidas != "SAIDAS") throw 10;
+
+    for(unsigned i=1; i<=getNumOutputs(); i++){
+        int id;
+        arq_circ >> id_prov;
+        /// adicionar no for de NPs
+        if(id_prov!=i) throw 11;
+
+        char p;
+        arq_circ >> p ;
+        if(p != ')') throw 12;
+
+        arq_circ >> id; // Recebe a id que a saida i retorna
+        if( (id>int(getNumPorts())) || (id<(-int(getNumInputs()))) || (id==0))throw 13;
+
+        setIdOutput(i,id);
+    }
     }catch(int op){
         std::cout << "Error: "<< op << std::endl;
+        //6clear();
         arq_circ.close();
         return false;
     }
 ///************************************************************************
 ///   	 std::cout << "entrei aqui" << std::endl;
 
-    /// Em seguida, para cada porta leh e confere a id e o tipo (validType)
-    /*
-    unsigned NP;
-    for(unsigned i = 1; i<=NP; i++){
-
-        for(unsigned j=1; j<=getNumInputsPort(i);j++){
-            if( (getId_inPort(i,j)>int(getNumPorts())) || (getId_inPort(i,j)<(-int(getNumInputs()))) || (getId_inPort(i,j)==0)){
-                arq_circ.close();
-                clear();
-                return false;
-            }
-        }
-    }
-
-	 //arq_circ.ignore();
-	 arq_circ >> saidas;
-	 //getline(arq, saidas);
-   	 if(saidas != "SAIDAS"){
-        	arq_circ.close();
-        	clear();
-        	return false;
-   	 }
-
-	for(unsigned i=1; i<=getNumOutputs(); i++){
-        arq_circ >> id_prov;
-        if(id_prov!=i){
-            arq_circ.close();
-            clear();
-            return false;
-        }
-        char p;
-        arq_circ >> p ;
-        if(p != ')'){
-            arq_circ.close();
-            clear();
-            return false;
-        }
-        //arq_circ.ignore(std::numeric_limits<std::streamsize>::max(),')');
-
-        // Recebe a id da saida
-        arq_circ >> id; // Recebe a id que a saida i retorna
-        ///arq_circ.ignore(); // Ignora o
-        if( (id>int(getNumPorts())) || (id<(-int(getNumInputs()))) || (id==0)){
-            arq_circ.close();
-            clear();
-            return false;
-        }
-        setIdOutput(i,id);
-    }
-
-       //*this = id_prov;
+       /*this = id_prov;
         arq_circ.close();
         return true;
         */
 }
 
-/// SIMULACAO
-///---------------------------------------------------------------
+bool Circuito::salvar(const std::string& arq)const{
+
+    std::ofstream arq_circ(arq);
+    if(!arq_circ.is_open()) return false;
+
+    imprimir(arq_circ);
+
+    arq_circ.close();
+
+    return true;
+}
+  /// ***********************
+  /// SIMULACAO (funcao principal do circuito)
+  /// ***********************
 bool Circuito::simular(const std::vector<bool3S>& in_circ){
     unsigned i,j;
     bool tudo_def, alguma_def;
+    std::vector<bool3S> in_port;
+    int id;
+
     ///SIMULACAO DAS PORTAS
     for( i=0; i< getNumPorts(); i++){
         ports[i]->setOutput(bool3S::UNDEF);
@@ -434,24 +437,60 @@ bool Circuito::simular(const std::vector<bool3S>& in_circ){
         tudo_def = true;
         alguma_def = false;
 
+
         for( i =0; i < getNumPorts(); i++){
-            if(ports[i]->getOutput() == bool3S::UNDEF){
+//std::cout << "passei: "<<  std::endl;
 
+            if( ports[i]->getOutput() == bool3S::UNDEF){
+
+//std::cout << "ports[i]->getNumInputs(): "<<ports[i]->getNumInputs() << std::endl;
                 for(j=0; j < ports[i]->getNumInputs(); j++){
-                    /// id = ports[i].id_in[j]
-                        // ports[i]->getId_in(i);
-                    //setId_inPort(ports[i]->id_in[j], );
-                        if( getId_inPort(i,j) >0){
 
-                        }
+                    id = ports[i]->getId_in(j);
+                    //std::cout <<id <<std::endl;
+                    if( id >0){
+                        //in_port.at(j) = ports[id-1]->getOutput();
+                        in_port.push_back(ports[id-1]->getOutput());
+                    }else{
+                        in_port.push_back(in_circ.at(-id-1));
+                        //in_port.at(j) = in_circ.at(-id-1);
+                    }
+
+                } // FIM GetNumInputs
+
+                ports[i]->simular(in_port);
+
+                if(ports[i]->getOutput() == bool3S::UNDEF){
+                    tudo_def = false;
+                }else{
+                    alguma_def = true;
                 }
-            }
-
-
-        }
+            } // FIM GetOutput
+        } // FIM GetNumPorts
 
     }while(!tudo_def && alguma_def);
 
-    return true;
+    /// Determinacao das saidas
+    for(j=0; j<getNumOutputs(); j++){
+        id = getIdOutput(j);
+
+        //std::cout << "getNumOutputs(): " <<getNumOutputs()<< std::endl;
+        //std::cout << "passei: " <<id<< std::endl;
+        if(id>0){
+            out_circ.at(j) = ports[id-1]->getOutput();
+        }else{
+            //std::cout << "passei: " <<id<< std::endl;
+            out_circ.at(j) = in_circ[-id-1];
+        }
+
+    } // FIM FOR GetNumOutputs
+
+
+    return tudo_def;
 }
 
+/// operator <<
+std::ostream& operator<<(std::ostream& O, const Circuito& C){
+
+    return  C.imprimir(O);
+}

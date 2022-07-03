@@ -1,0 +1,6 @@
+CIRCUITO 2 1 1
+PORTAS
+1)OR 2: -1 -2
+SAIDAS
+1) 1
+
