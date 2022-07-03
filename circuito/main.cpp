@@ -1,40 +1,66 @@
 #include <iostream>
-#include "bool3S.h"
-#include "Port.h"
-#include "Circuito.h"
+#include <string>
+#include "circuito.h"
 
 using namespace std;
+
 void gerarTabela(Circuito& C);
-int main()
+
+int main(void)
 {
+  Circuito C;
+  string nome;
+  int opcao;
 
-
-    Circuito *C = new Circuito();
-    Circuito A = Circuito();
-
-    //C->setPort(1,"NT",1);
-    //C->ler("circuito1.txt");
-
-
-    A.ler("cc.txt");
-   //A.digitar();
-    A.imprimir(cout);
-    cout << "*****************" << endl;
-    //gerarTabela(A);
-
-    cout << "IN: " <<A.getNumInputs() << endl;
-    cout << "Out: " <<A.getNumOutputs() << endl;
-    cout << "ports: " <<A.getNumPorts() << endl;
-    cout << "valid: " <<A.valid() << endl;
-
-    cout << "IdOut: " <<A.getIdOutput(-2) << endl;
-
-
-
-
-
-
-    return 0;
+  do {
+    cout << "\nPROGRAMA SIMULADOR DE CIRCUITOS DIGITAIS:\n";
+    do {
+      cout << "0 - Sair\n";
+      cout << "1 - Digitar um circuito via teclado\n";
+      cout << "2 - Salvar um circuito em arquivo\n";
+      cout << "3 - Ler um circuito de arquivo\n";
+      cout << "4 - Imprimir o circuito na tela\n";
+      cout << "5 - Simular o circuito para todas as entrada (gerar tabela verdade)\n";
+      cout << "Qual sua opcao? ";
+      cin >> opcao;
+    } while(opcao<0 || opcao>5);
+    switch(opcao){
+    case 1:
+      C.digitar();
+      break;
+    case 2:
+    case 3:
+      // Antes de ler a string com o nome do arquivo, esvaziar o buffer do teclado
+      cin.ignore(256,'\n');
+      do {
+        cout << "Arquivo: ";
+        getline(cin,nome);
+      } while (nome.size() < 3); // Name do arquivo >= 3 caracteres
+      if (opcao==3) {
+        if (!C.ler(nome))
+        {
+          // Erro na leitura
+          cerr << "Arquivo " << nome << " invalido para leitura\n";
+        }
+      }
+      else {
+        if (!C.salvar(nome))
+        {
+          // Erro no salvamento
+          cerr << "Arquivo " << nome << " invalido para escrita\n";
+        }
+      }
+      break;
+    case 4:
+      C.imprimir();
+      break;
+    case 5:
+      gerarTabela(C);
+      break;
+    default:
+      break;
+    }
+  } while(opcao != 0);
 }
 
 void gerarTabela(Circuito& C)
@@ -51,7 +77,6 @@ void gerarTabela(Circuito& C)
   cout << "ENTRADAS" << '\t' << "SAIDAS" << endl;
   do
   {
-
     // Simulacao
     C.simular(in_circ);
 

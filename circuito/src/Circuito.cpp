@@ -267,7 +267,7 @@ void Circuito::digitar(){
 
     resize(NI, NO, NP);
 
-    for(int i=1; i<=NP; i++){
+    for(int i=0; i<NP; i++){
         std::cin.ignore(std::numeric_limits< std::streamsize>::max(), '\n');
         do{
 
@@ -277,20 +277,12 @@ void Circuito::digitar(){
             std::cout << "NX(NOT EXCLUSIVE OR) \n\n";
             std::getline(std::cin, name);
             if(validType(name)){
-                Port* porta = allocPort(name);
-                ports.push_back( porta->clone() );
+                ports.at(i) = allocPort(name);
                 do{
-                    ports[i]->imprimir(std::cout);
-                    std::cout << std::endl;
                     ports[i]->digitar();
-                    ports[i]->imprimir(std::cout);
-                    std::cout << std::endl;
-
-
                 /// ENQUANTO PORTA I NAO VALIDA REPITA
-                }while(!validPort(i));
+                }while(!validPort(i+1));
             } // FIM IF VALIDTYPE
-
 
         /// enquanto nome nao valido repita
         }while( !validType(name));
@@ -302,6 +294,9 @@ void Circuito::digitar(){
         do{
             std::cout << "Digite de onde vem as saidas: ";
             std::cin >> saidas;
+            if(validIdOrig(saidas)){
+               setIdOutput(i+1,saidas);
+            }
         }while( !validIdOrig(saidas));
 
     }// FIM FOR NO
@@ -339,8 +334,6 @@ bool Circuito::ler(const std::string& arq){
 
         arq_circ>>NI>>NO>>NP;
 
-        /// if( (NI<=0) || (NO <=0) || (NP <=0) ) throw 3
-        /// if((NI==0) || (NO==0) || ((NP==0) && (NI>NO))) throw 3;
         if( (NI<=0) || (NO <=0) || (NP <=0) ) throw 3;
         clear();
         resize(NI,NO,NP);
@@ -349,11 +342,11 @@ bool Circuito::ler(const std::string& arq){
         if(portas != "PORTAS") throw 4;
 
 /// Em seguida, para cada porta leh e confere a id e o tipo (validType)
-        //for(unsigned i = 1; i<=NP; i++)
+
         for(unsigned i = 0; i<NP; i++){
 
             arq_circ >> id_prov;
-            //  id_prov!=i
+
             if( !arq_circ.good() || id_prov!=i+1) throw 5;
 
             char p;
@@ -364,52 +357,44 @@ bool Circuito::ler(const std::string& arq){
             arq_circ >> tipo;
             if(!validType(tipo)) throw 7;
 
-            /// at vai de 0 a 6
-            /// i vai de 1 a 7
-            //ports.at(i-1)
             ports.at(i) = allocPort(tipo);
 
-
-            if(! ports[i]->ler(arq_circ) ) throw 8;
-            if(  !validPort(i+1) )  throw 9;
-std::cout << "passei: "<<  std::endl;
+            if( !ports[i]->ler(arq_circ) ) throw 8;
+            if( !validPort(i+1) )  throw 9;
 
     } // FIM FOR NP
+
     arq_circ >> saidas;
     if(saidas != "SAIDAS") throw 10;
 
-    for(unsigned i=1; i<=getNumOutputs(); i++){
-        int id;
+    for(unsigned i=0; i<getNumOutputs(); i++){
         arq_circ >> id_prov;
-        /// adicionar no for de NPs
-        if(id_prov!=i) throw 11;
+
+        if(id_prov!=i+1) throw 11;
 
         char p;
         arq_circ >> p ;
         if(p != ')') throw 12;
 
+        int id;
         arq_circ >> id; // Recebe a id que a saida i retorna
         if( (id>int(getNumPorts())) || (id<(-int(getNumInputs()))) || (id==0))throw 13;
 
-        setIdOutput(i,id);
+        setIdOutput(i+1,id);
     }
     }catch(int op){
         std::cout << "Error: "<< op << std::endl;
-        //6clear();
+        clear();
         arq_circ.close();
         return false;
     }
-///************************************************************************
-///   	 std::cout << "entrei aqui" << std::endl;
 
-       /*this = id_prov;
-        arq_circ.close();
-        return true;
-        */
+    arq_circ.close();
+    return true;
+
 }
 
 bool Circuito::salvar(const std::string& arq)const{
-
     std::ofstream arq_circ(arq);
     if(!arq_circ.is_open()) return false;
 
@@ -437,25 +422,15 @@ bool Circuito::simular(const std::vector<bool3S>& in_circ){
         tudo_def = true;
         alguma_def = false;
 
-
         for( i =0; i < getNumPorts(); i++){
-//std::cout << "passei: "<<  std::endl;
-
             if( ports[i]->getOutput() == bool3S::UNDEF){
-
-//std::cout << "ports[i]->getNumInputs(): "<<ports[i]->getNumInputs() << std::endl;
                 for(j=0; j < ports[i]->getNumInputs(); j++){
-
                     id = ports[i]->getId_in(j);
-                    //std::cout <<id <<std::endl;
                     if( id >0){
-                        //in_port.at(j) = ports[id-1]->getOutput();
                         in_port.push_back(ports[id-1]->getOutput());
                     }else{
                         in_port.push_back(in_circ.at(-id-1));
-                        //in_port.at(j) = in_circ.at(-id-1);
                     }
-
                 } // FIM GetNumInputs
 
                 ports[i]->simular(in_port);
@@ -472,14 +447,11 @@ bool Circuito::simular(const std::vector<bool3S>& in_circ){
 
     /// Determinacao das saidas
     for(j=0; j<getNumOutputs(); j++){
-        id = getIdOutput(j);
+        id = getIdOutput(j+1);
 
-        //std::cout << "getNumOutputs(): " <<getNumOutputs()<< std::endl;
-        //std::cout << "passei: " <<id<< std::endl;
         if(id>0){
             out_circ.at(j) = ports[id-1]->getOutput();
         }else{
-            //std::cout << "passei: " <<id<< std::endl;
             out_circ.at(j) = in_circ[-id-1];
         }
 
@@ -491,6 +463,5 @@ bool Circuito::simular(const std::vector<bool3S>& in_circ){
 
 /// operator <<
 std::ostream& operator<<(std::ostream& O, const Circuito& C){
-
     return  C.imprimir(O);
 }
